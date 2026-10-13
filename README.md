@@ -15,3 +15,9 @@
 4. A yöneticisi ile giriş yap: sadece A'yı ve A'nın kullanıcılarını görmeli.
 5. A hesabıyla B'nin firma koduyla girmeyi dene: "üyeliğiniz yok" demeli.
 6. Süper yönetici panelinde bir firmanın lisans bitiş tarihini geçmişe al: o firma kullanıcıları "Lisans süresi doldu" ekranını görmeli.
+
+## Tasarım güncellemesi (v2)
+- Koyu lacivert modern arayüz: üst çubuk, açılır/kapanır sol menü, kartlar, arama/filtre çubuğu, durum rozetleri.
+- Üstteki güneş/ay simgesiyle açık-koyu tema geçişi.
+- Ürün adı ve alt başlığı `lib/brand.js` dosyasından değiştirilebilir.
+- Yeni bağımlılık: lucide-react (Vercel otomatik kurar). Veritabanı değişmedi, SQL'i tekrar çalıştırmaya gerek yok.

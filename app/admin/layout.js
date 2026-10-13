@@ -1,7 +1,6 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getContext } from '@/lib/session'
-import LogoutButton from '@/components/LogoutButton'
+import AppShell from '@/components/AppShell'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,18 +8,15 @@ export default async function AdminLayout({ children }) {
   const ctx = await getContext()
   if (!ctx.user) redirect('/login')
   if (!ctx.profile?.is_super_admin) redirect('/')
+  const items = [
+    { href: '/admin', label: 'Firma Yönetimi', icon: 'building' },
+    { label: 'Lisans Anahtarları', icon: 'key', disabled: true },
+    { label: 'İşlem Kayıtları', icon: 'history', disabled: true },
+  ]
   return (
-    <div>
-      <nav className="nav">
-        <div className="nav-inner">
-          <strong>Süper Yönetici Paneli</strong>
-          <Link href="/admin">Firmalar</Link>
-          <span className="spacer" />
-          <span className="muted">{ctx.profile.email}</span>
-          <LogoutButton />
-        </div>
-      </nav>
-      <main className="container">{children}</main>
-    </div>
+    <AppShell items={items} contextLabel="Merkezi Yönetim"
+      userName={ctx.profile.full_name || ctx.profile.email} roleLabel="SÜPER ADMİN">
+      {children}
+    </AppShell>
   )
 }

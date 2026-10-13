@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Icon from '@/components/Icon'
+import { BRAND } from '@/lib/brand'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -66,19 +68,33 @@ export default function LoginPage() {
     setBusy(false)
   }
 
+  const Brand = (
+    <div className="auth-brand">
+      <div className="logo">{BRAND.letter}</div>
+      <div><div className="brand-name">{BRAND.name}</div><div className="brand-sub">{BRAND.sub}</div></div>
+    </div>
+  )
+
   if (!superMode && !company) {
     return (
-      <div className="center">
-        <form className="card auth" onSubmit={findCompany}>
-          <h1>Firma Seçimi</h1>
+      <div className="auth-wrap">
+        {Brand}
+        <form className="auth-card" onSubmit={findCompany}>
+          <h1>Firma seçimi</h1>
+          <p className="sub">Devam etmek için firma kodunuzu girin.</p>
           <div className="field">
-            <label>Firma kodunu giriniz</label>
-            <input value={code} onChange={e => setCode(e.target.value)} placeholder="Örn: KAYMER" required />
+            <label>Firma kodu</label>
+            <div className="input-icon">
+              <Icon name="building" size={18} />
+              <input value={code} onChange={e => setCode(e.target.value)} placeholder="Örn: KAYMER" required autoFocus />
+            </div>
           </div>
           {error && <div className="error">{error}</div>}
-          <div className="row">
-            <button disabled={busy}>Devam Et</button>
-            <button type="button" className="ghost" onClick={() => { setSuperMode(true); setError('') }}>Süper yönetici girişi</button>
+          <div className="auth-actions">
+            <button className="btn btn-primary" disabled={busy}>Devam et</button>
+            <button type="button" className="btn btn-ghost" onClick={() => { setSuperMode(true); setError('') }}>
+              <Icon name="shield" size={16} /> Süper yönetici girişi
+            </button>
           </div>
         </form>
       </div>
@@ -86,13 +102,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="center">
-      <form className="card auth" onSubmit={submit}>
-        <h1>{superMode ? 'Süper Yönetici' : company.name}</h1>
-        <p className="muted" style={{ marginTop: -8 }}>{mode === 'login' ? 'Giriş yap' : 'Hesap oluştur'}</p>
+    <div className="auth-wrap">
+      {Brand}
+      <form className="auth-card" onSubmit={submit}>
+        <h1>{superMode ? 'Süper yönetici' : company.name}</h1>
+        <p className="sub">{mode === 'login' ? 'Hesabınızla giriş yapın.' : 'Yeni hesap oluşturun.'}</p>
         {mode === 'register' && (
           <div className="field">
-            <label>Ad Soyad</label>
+            <label>Ad soyad</label>
             <input value={fullName} onChange={e => setFullName(e.target.value)} required />
           </div>
         )}
@@ -105,15 +122,17 @@ export default function LoginPage() {
           <input type="password" minLength={6} value={password} onChange={e => setPassword(e.target.value)} required />
         </div>
         {error && <div className="error">{error}</div>}
-        {info && <div className="muted">{info}</div>}
-        <div className="row" style={{ marginTop: 12 }}>
-          <button disabled={busy}>{mode === 'login' ? 'Giriş Yap' : 'Hesap Oluştur'}</button>
-          <button type="button" className="ghost" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setInfo('') }}>
+        {info && <div className="notice">{info}</div>}
+        <div className="auth-actions">
+          <button className="btn btn-primary" disabled={busy}>{mode === 'login' ? 'Giriş yap' : 'Hesap oluştur'}</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setInfo('') }}>
             {mode === 'login' ? 'Hesap oluştur' : 'Girişe dön'}
           </button>
         </div>
-        <div className="row">
-          <button type="button" className="ghost" onClick={() => { setCompany(null); setSuperMode(false); setError(''); setInfo('') }}>← Firma seçimine dön</button>
+        <div className="auth-link">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setCompany(null); setSuperMode(false); setError(''); setInfo('') }}>
+            <Icon name="back" size={15} /> Firma seçimine dön
+          </button>
         </div>
       </form>
     </div>

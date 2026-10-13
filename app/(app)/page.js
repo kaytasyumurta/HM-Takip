@@ -1,5 +1,7 @@
 import { getContext } from '@/lib/session'
 import { daysLeft, fmtDate, licenseState, LICENSE_TR } from '@/lib/format'
+import PageHeader from '@/components/PageHeader'
+import Icon from '@/components/Icon'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,27 +10,55 @@ export default async function Home() {
   const { company, role } = active
   const left = daysLeft(company.license_end)
   const state = licenseState(company)
+  const total = Math.max(1, Math.ceil((new Date(company.license_end) - new Date(company.license_start)) / 86400000))
+  const pct = Math.min(100, Math.max(0, Math.round((left / total) * 100)))
+
   return (
     <div>
-      <h1>Ana Sayfa</h1>
+      <PageHeader icon="home" title="Ana Sayfa" subtitle={`${company.name} kontrol paneli`} />
+
       {role === 'company_admin' && left <= 7 && (
-        <div className="banner">Lisans süreniz {left} gün sonra sona erecek. Uzatma için yazılım geliştiricisiyle iletişime geçin.</div>
+        <div className="banner"><Icon name="alert" /> Lisans süreniz {left} gün sonra sona erecek. Uzatma için yazılım geliştiricisiyle iletişime geçin.</div>
       )}
-      <div className="grid">
-        <div className="card">
-          <div className="muted">Lisans durumu</div>
-          <div><span className={`badge ${state}`}>{LICENSE_TR[state]}</span></div>
+
+      <div className="stat-grid">
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="check" size={24} /></div>
+          <div>
+            <div className="stat-label">Lisans durumu</div>
+            <div style={{ marginTop: 6 }}><span className={`status ${state}`}><i />{LICENSE_TR[state]}</span></div>
+          </div>
         </div>
-        <div className="card">
-          <div className="muted">Kalan süre</div>
-          <div className="stat">{left} gün</div>
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="clock" size={24} /></div>
+          <div>
+            <div className="stat-label">Kalan süre</div>
+            <div className="stat-value">{left} gün</div>
+          </div>
         </div>
-        <div className="card">
-          <div className="muted">Lisans bitiş tarihi</div>
-          <div className="stat" style={{ fontSize: 22 }}>{fmtDate(company.license_end)}</div>
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="calendar" size={24} /></div>
+          <div>
+            <div className="stat-label">Lisans bitiş tarihi</div>
+            <div className="stat-value" style={{ fontSize: 22 }}>{fmtDate(company.license_end)}</div>
+          </div>
         </div>
       </div>
-      <p className="muted">Tedarik, kantar ve raporlama modülleri sonraki aşamalarda eklenecek.</p>
+
+      <div className="card">
+        <strong>Lisans süresi</strong>
+        <div className={`progress ${left <= 7 ? 'soon' : ''}`}><span style={{ width: `${pct}%` }} /></div>
+        <div className="muted" style={{ fontSize: 13 }}>{fmtDate(company.license_start)} - {fmtDate(company.license_end)} · %{pct} kaldı</div>
+      </div>
+
+      <div className="card">
+        <strong>Yakında eklenecek modüller</strong>
+        <div className="module-list">
+          <div className="module"><Icon name="truck" /> Hammadde tedarik yönetimi</div>
+          <div className="module"><Icon name="scale" /> Kantar ve araç kayıtları</div>
+          <div className="module"><Icon name="chart" /> Raporlar ve Excel çıktısı</div>
+        </div>
+      </div>
     </div>
   )
 }
