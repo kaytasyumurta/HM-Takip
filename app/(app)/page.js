@@ -17,10 +17,6 @@ export default async function Home() {
     <div>
       <PageHeader icon="home" title="Ana Sayfa" subtitle={`${company.name} kontrol paneli`} />
 
-      {role === 'company_admin' && left <= 7 && (
-        <div className="banner"><Icon name="alert" /> Lisans süreniz {left} gün sonra sona erecek. Uzatma için yazılım geliştiricisiyle iletişime geçin.</div>
-      )}
-
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-icon"><Icon name="check" size={24} /></div>

@@ -22,4 +22,15 @@
 - Ürün adı ve alt başlığı `lib/brand.js` dosyasından değiştirilebilir.
 - Yeni bağımlılık: lucide-react (Vercel otomatik kurar). Veritabanı değişmedi, SQL'i tekrar çalıştırmaya gerek yok.
 
-Commit changes
+## Aşama 2 (lisans anahtarları)
+1. Supabase > SQL Editor: `supabase/asama2.sql` dosyasının TAMAMINI yapıştırıp Run (Aşama 1 SQL'i daha önce çalıştırılmış olmalı).
+2. Dosyaları GitHub'a yükle, Vercel otomatik dağıtır.
+3. Süper yönetici panelinde: Lisans Anahtarları > Yeni anahtar oluştur. Anahtar yalnızca oluşturulurken bir kez gösterilir.
+4. Yeni kullanıcı: firma kodu > hesap oluştur > aktivasyon kodunu gir. Firma yöneticisi: Lisans sayfasından uzatma anahtarını girer.
+
+### Test listesi
+- A firması için uzatma anahtarı üret, B firmasının yöneticisiyle girmeyi dene: reddedilmeli.
+- Aynı anahtarı ikinci kez gir: reddedilmeli.
+- Lisans süresi bitmemişken uzat: yeni bitiş = eski bitiş + gün. Süre dolmuşken uzat: bugün + gün.
+- Üst üste 5 hatalı anahtar: 15 dakika bekletme mesajı. İşlem Kayıtları'nda "Hatalı anahtar denemesi" görünmeli.
+- Süresi dolan firmanın yöneticisi, kilit ekranından anahtar girip devam edebilmeli. Verileri silinmemeli.

@@ -1,8 +1,10 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getContext } from '@/lib/session'
-import { licenseState, fmtDate, ROLE_SHORT } from '@/lib/format'
+import { licenseState, fmtDate, daysLeft, ROLE_SHORT } from '@/lib/format'
 import AppShell from '@/components/AppShell'
 import Icon from '@/components/Icon'
+import ExtendLicense from '@/components/ExtendLicense'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,11 +16,15 @@ export default async function AppLayout({ children }) {
   const { company, role } = ctx.active
   const state = licenseState(company)
   const blocked = state === 'expired' || state === 'passive'
+  const left = daysLeft(company.license_end)
 
   const items = []
   if (!blocked) {
     items.push({ href: '/', label: 'Ana Sayfa', icon: 'home' })
-    if (role === 'company_admin') items.push({ href: '/members', label: 'Kullanıcılar', icon: 'users' })
+    if (role === 'company_admin') {
+      items.push({ href: '/members', label: 'Kullanıcılar', icon: 'users' })
+      items.push({ href: '/license', label: 'Lisans', icon: 'key' })
+    }
     items.push(
       { label: 'Hammadde Tedarik', icon: 'truck', disabled: true },
       { label: 'Kantar Kayıtları', icon: 'scale', disabled: true },
@@ -26,6 +32,8 @@ export default async function AppLayout({ children }) {
     )
   }
   if (ctx.profile?.is_super_admin) items.push({ href: '/admin', label: 'Süper Yönetici', icon: 'shield' })
+
+  const showBanner = !blocked && role === 'company_admin' && left <= 7
 
   return (
     <AppShell items={items} contextLabel={company.name}
@@ -42,8 +50,24 @@ export default async function AppLayout({ children }) {
           {role === 'company_admin' && (
             <p>Lisans bitiş tarihi: <strong>{fmtDate(company.license_end)}</strong>. Uzatma için yazılım geliştiricisiyle iletişime geçin.</p>
           )}
+          {role === 'company_admin' && state === 'expired' && (
+            <div style={{ marginTop: 20 }}>
+              <ExtendLicense companyId={company.id} />
+            </div>
+          )}
         </div>
-      ) : children}
+      ) : (
+        <>
+          {showBanner && (
+            <div className={`banner ${left <= 3 ? 'danger' : ''}`}>
+              <Icon name="alert" />
+              <span>{left <= 1 ? 'Lisansınız 1 gün içinde sona erecek.' : `Lisansınızın bitmesine ${left} gün kaldı.`}</span>
+              <Link href="/license" className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}>Lisansı uzat</Link>
+            </div>
+          )}
+          {children}
+        </>
+      )}
     </AppShell>
   )
 }

@@ -78,6 +78,13 @@ export default function AdminPage() {
         <button className="btn btn-primary" onClick={newForm}><Icon name="plus" size={18} /> Yeni Firma</button>
       </PageHeader>
 
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-icon"><Icon name="building" size={24} /></div><div><div className="stat-label">Toplam firma</div><div className="stat-value">{rows.length}</div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="check" size={24} /></div><div><div className="stat-label">Aktif lisans</div><div className="stat-value">{rows.filter(c => licenseState(c) === 'active').length}</div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="clock" size={24} /></div><div><div className="stat-label">Süresi yaklaşan (7 gün)</div><div className="stat-value">{rows.filter(c => licenseState(c) === 'soon').length}</div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="ban" size={24} /></div><div><div className="stat-label">Süresi dolan / pasif</div><div className="stat-value">{rows.filter(c => ['expired', 'passive'].includes(licenseState(c))).length}</div></div></div>
+      </div>
+
       {error && !form && <div className="error">{error}</div>}
 
       <div className="toolbar">

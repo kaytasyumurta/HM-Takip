@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
+  const [needActivation, setNeedActivation] = useState(false)
+  const [actCode, setActCode] = useState('')
 
   async function findCompany(e) {
     e.preventDefault(); setError(''); setBusy(true)
@@ -38,8 +40,7 @@ export default function LoginPage() {
     const { data: m } = await supabase.from('memberships').select('id')
       .eq('company_id', company.id).eq('user_id', userId).eq('active', true)
     if (!m || !m.length) {
-      await supabase.auth.signOut()
-      setError('Bu firmaya üyeliğiniz yok. Firma yöneticinizden sizi eklemesini isteyin.')
+      setNeedActivation(true)
       return
     }
     document.cookie = `active_company=${company.id}; path=/; max-age=2592000; samesite=lax`
@@ -58,14 +59,32 @@ export default function LoginPage() {
       else if (data.session) {
         const { data: p } = await supabase.from('profiles').select('is_super_admin').eq('id', data.user.id).single()
         if (p?.is_super_admin) { router.push('/admin'); router.refresh() }
+        else if (!superMode) { setNeedActivation(true) }
         else {
           await supabase.auth.signOut()
           setMode('login')
-          setInfo('Hesabınız oluşturuldu. Firma yöneticiniz sizi firmaya ekledikten sonra giriş yapabilirsiniz.')
+          setInfo('Hesap oluşturuldu ancak süper yönetici yetkisi yok.')
         }
       } else setInfo('Kayıt alındı. E-postanıza gelen doğrulama bağlantısına tıklayın.')
     }
     setBusy(false)
+  }
+
+  async function activate(e) {
+    e.preventDefault(); setError(''); setBusy(true)
+    const { data, error } = await supabase.rpc('activate_membership', { p_company: company.id, p_code: actCode })
+    if (error) setError(error.message)
+    else if (!data?.ok) setError(data?.error || 'Aktivasyon başarısız.')
+    else {
+      document.cookie = `active_company=${company.id}; path=/; max-age=2592000; samesite=lax`
+      router.push('/'); router.refresh()
+    }
+    setBusy(false)
+  }
+
+  async function cancelActivation() {
+    await supabase.auth.signOut()
+    setNeedActivation(false); setActCode(''); setError(''); setPassword('')
   }
 
   const Brand = (
@@ -74,6 +93,30 @@ export default function LoginPage() {
       <div><div className="brand-name">{BRAND.name}</div><div className="brand-sub">{BRAND.sub}</div></div>
     </div>
   )
+
+  if (needActivation && company) {
+    return (
+      <div className="auth-wrap">
+        {Brand}
+        <form className="auth-card" onSubmit={activate}>
+          <h1>Aktivasyon kodu</h1>
+          <p className="sub">{company.name} firmasına ilk kez giriyorsunuz. Firmanızın size verdiği aktivasyon kodunu girin. Bu kodu yalnızca bir kez girmeniz yeterli.</p>
+          <div className="field">
+            <label>Aktivasyon kodu</label>
+            <div className="input-icon">
+              <Icon name="key" size={18} />
+              <input value={actCode} onChange={e => setActCode(e.target.value)} placeholder="ACT-XXXXX-XXXXX-XXXXX-XXXXX" required autoFocus autoComplete="off" />
+            </div>
+          </div>
+          {error && <div className="error">{error}</div>}
+          <div className="auth-actions">
+            <button className="btn btn-primary" disabled={busy}>Aktive et</button>
+            <button type="button" className="btn btn-ghost" onClick={cancelActivation}>Vazgeç</button>
+          </div>
+        </form>
+      </div>
+    )
+  }
 
   if (!superMode && !company) {
     return (

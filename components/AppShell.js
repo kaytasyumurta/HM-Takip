@@ -27,7 +27,9 @@ export default function AppShell({ items, contextLabel, userName, roleLabel, chi
   }
 
   const initials = (userName || '?').split(' ').filter(Boolean).slice(0, 2).map(s => s[0]).join('').toLocaleUpperCase('tr-TR')
-  const isActive = href => (href === '/' ? pathname === '/' : pathname.startsWith(href))
+  const matches = items.filter(i => i.href && (i.href === '/' ? pathname === '/' : pathname === i.href || pathname.startsWith(i.href + '/')))
+  const best = matches.sort((a, b) => b.href.length - a.href.length)[0]?.href
+  const isActive = href => href === best
 
   return (
     <div className={`app ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>

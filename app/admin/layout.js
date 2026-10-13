@@ -10,8 +10,8 @@ export default async function AdminLayout({ children }) {
   if (!ctx.profile?.is_super_admin) redirect('/')
   const items = [
     { href: '/admin', label: 'Firma Yönetimi', icon: 'building' },
-    { label: 'Lisans Anahtarları', icon: 'key', disabled: true },
-    { label: 'İşlem Kayıtları', icon: 'history', disabled: true },
+    { href: '/admin/keys', label: 'Lisans Anahtarları', icon: 'key' },
+    { href: '/admin/logs', label: 'İşlem Kayıtları', icon: 'history' },
   ]
   return (
     <AppShell items={items} contextLabel="Merkezi Yönetim"

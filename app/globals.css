@@ -168,3 +168,15 @@ tbody tr:hover { background:var(--row-hover); }
   .ph-title { font-size:22px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+
+/* ---------- Aşama 2 eklemeleri ---------- */
+.nav-item svg { flex-shrink:0; }
+.nav-label { overflow:hidden; text-overflow:ellipsis; }
+.container { max-width:1500px; }
+.banner.danger { border-color:var(--danger-line); background:var(--danger-soft); color:var(--danger-text); }
+.status.used { color:var(--primary-text); background:var(--primary-soft); border-color:var(--primary-line); }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.tab { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:inherit; font-weight:600; font-size:14px; cursor:pointer; }
+.tab:hover { color:var(--text); }
+.tab.on { color:#fff; border-color:transparent; background:linear-gradient(90deg,#1d4ed8,#2f5fd8); box-shadow:0 6px 18px rgba(29,78,216,.3); }
+.key-box { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:20px; letter-spacing:.04em; text-align:center; padding:18px; border-radius:12px; border:1px dashed var(--primary-line); background:var(--primary-soft); color:var(--primary-text); word-break:break-all; user-select:all; }
