@@ -37,7 +37,7 @@ export default function CompanyDetail() {
       </div>
 
       {tab === 'users' ? (
-        <MembersManager companyId={id} selfId={me} />
+        <MembersManager companyId={id} selfId={me} allowAddByEmail />
       ) : (
         <>
           <KeyManager companyId={id} />

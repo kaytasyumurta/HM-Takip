@@ -34,3 +34,23 @@
 - Lisans süresi bitmemişken uzat: yeni bitiş = eski bitiş + gün. Süre dolmuşken uzat: bugün + gün.
 - Üst üste 5 hatalı anahtar: 15 dakika bekletme mesajı. İşlem Kayıtları'nda "Hatalı anahtar denemesi" görünmeli.
 - Süresi dolan firmanın yöneticisi, kilit ekranından anahtar girip devam edebilmeli. Verileri silinmemeli.
+
+## Aşama 3 (başvuru-onay, 15 gün deneme, tedarik modülü)
+1. Supabase > SQL Editor: `supabase/asama3.sql` dosyasının TAMAMINI yapıştırıp Run (Aşama 1 ve 2 daha önce çalıştırılmış olmalı).
+2. Dosyaları GitHub'a yükle (main dalına), Vercel otomatik dağıtır.
+
+### Yeni kayıt akışı
+Kullanıcı: firma kodu > hesap oluştur > başvuru yapar. Firma yöneticisi: Kullanıcılar sayfasında başvuruyu görür, rol seçip Onayla/Reddet der. Yönetici e-posta girmez.
+İlk firma yöneticisi için: süper yönetici firma detayında "Kullanıcılar" sekmesinden başvuruyu onaylar ya da e-posta ile ekler.
+
+### Hız (önemli)
+Vercel > Project Settings > Functions > Function Region: Supabase projenizle AYNI bölgeyi seçin
+(Supabase > Project Settings > General > Region). Varsayılan ABD (Washington) ise ve Supabase Avrupa'daysa her sayfa geçişi gecikir.
+Değişiklikten sonra Redeploy yapın.
+
+### Test listesi
+- Süper yönetici yeni firma oluştursun: bitiş tarihi tam 15 gün sonra olmalı (formda gün alanı yok).
+- Başka bir hesapla firma koduyla başvur: yönetici ekranında görünmeli, onaylanınca giriş yapabilmeli.
+- A firmasının kullanıcısı B firmasının tedarik/tedarikçi/ürün kayıtlarını göremez ve ekleyemez.
+- Nakliye modeli "dahil" iken ayrı nakliye bedeli kaydedilemez. "Belirsiz" iken kayıt yapılabilir, sonra "ayrı bedel"e çevrilince geçmişte görünür.
+- Lisansı biten firmada tedarik sayfaları veri döndürmez (kilit ekranı çıkar).

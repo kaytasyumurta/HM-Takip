@@ -6,8 +6,6 @@ import AppShell from '@/components/AppShell'
 import Icon from '@/components/Icon'
 import ExtendLicense from '@/components/ExtendLicense'
 
-export const dynamic = 'force-dynamic'
-
 export default async function AppLayout({ children }) {
   const ctx = await getContext()
   if (!ctx.user) redirect('/login')
@@ -19,17 +17,20 @@ export default async function AppLayout({ children }) {
   const left = daysLeft(company.license_end)
 
   const items = []
+  const manager = ['company_admin', 'purchasing'].includes(role)
   if (!blocked) {
     items.push({ href: '/', label: 'Ana Sayfa', icon: 'home' })
+    if (manager) {
+      items.push({ href: '/supplies', label: 'Hammadde Tedarik', icon: 'truck' })
+      items.push({ href: '/suppliers', label: 'Tedarikçiler', icon: 'building' })
+      items.push({ href: '/products', label: 'Ürünler', icon: 'layers' })
+    }
+    items.push({ label: 'Kantar Kayıtları', icon: 'scale', disabled: true })
+    items.push({ label: 'Raporlar', icon: 'chart', disabled: true })
     if (role === 'company_admin') {
       items.push({ href: '/members', label: 'Kullanıcılar', icon: 'users' })
       items.push({ href: '/license', label: 'Lisans', icon: 'key' })
     }
-    items.push(
-      { label: 'Hammadde Tedarik', icon: 'truck', disabled: true },
-      { label: 'Kantar Kayıtları', icon: 'scale', disabled: true },
-      { label: 'Raporlar', icon: 'chart', disabled: true },
-    )
   }
   if (ctx.profile?.is_super_admin) items.push({ href: '/admin', label: 'Süper Yönetici', icon: 'shield' })
 

@@ -45,11 +45,8 @@ export default function AdminPage() {
         status: form.status, license_end: end.toISOString(),
       }).eq('id', form.id)
     } else {
-      const start = new Date()
-      const end = new Date(start.getTime() + Number(form.days) * 86400000)
       res = await supabase.from('companies').insert({
         name: form.name, code: form.code.trim().toUpperCase(), contact_info: form.contact_info || null,
-        license_start: start.toISOString(), license_end: end.toISOString(),
       })
     }
     if (res.error) {
@@ -163,7 +160,7 @@ export default function AdminPage() {
                   <div><label>Lisans bitiş tarihi</label><input type="date" value={form.license_end} required onChange={e => setForm({ ...form, license_end: e.target.value })} /></div>
                 </>
               ) : (
-                <div><label>Lisans süresi (gün)</label><input type="number" min="1" value={form.days} required onChange={e => setForm({ ...form, days: e.target.value })} /></div>
+                <div className="notice" style={{ margin: 0, alignSelf: 'end' }}>Yeni firmalara otomatik olarak 15 günlük deneme lisansı tanımlanır.</div>
               )}
             </div>
             <div className="modal-foot">

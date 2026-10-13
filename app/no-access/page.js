@@ -12,7 +12,7 @@ export default function NoAccess() {
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <div className="ph-icon" style={{ margin: '0 auto 16px' }}><Icon name="ban" size={28} /></div>
         <h1>Firma üyeliği yok</h1>
-        <p className="sub">Hesabınız herhangi bir aktif firmaya bağlı değil. Firma yöneticinizden sizi firmaya eklemesini isteyin.</p>
+        <p className="sub">Hesabınız henüz onaylı bir firmaya bağlı değil. Başvurunuz yönetici onayını bekliyor olabilir. Onaylandığında tekrar giriş yapın.</p>
         <LogoutButton />
       </div>
     </div>

@@ -18,8 +18,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
-  const [needActivation, setNeedActivation] = useState(false)
-  const [actCode, setActCode] = useState('')
 
   async function findCompany(e) {
     e.preventDefault(); setError(''); setBusy(true)
@@ -27,6 +25,17 @@ export default function LoginPage() {
     if (error || !data || !data.length) setError('Firma bulunamadı. Firma kodunu kontrol edin.')
     else setCompany(data[0])
     setBusy(false)
+  }
+
+  // Firmaya üye değilse: başvuru oluştur, yönetici onayını bekle
+  async function applyToCompany() {
+    const { data, error } = await supabase.rpc('request_to_join', { p_company: company.id })
+    await supabase.auth.signOut()
+    setMode('login')
+    if (error) setError(error.message)
+    else if (!data?.ok) setError(data?.error || 'Başvuru oluşturulamadı.')
+    else if (data.state === 'pending') setInfo('Başvurunuz zaten firma yöneticisinin onayını bekliyor. Onaylandığında bu e-posta ve şifreyle giriş yapabilirsiniz.')
+    else setInfo('Başvurunuz firma yöneticisine iletildi. Onaylandığında bu e-posta ve şifreyle giriş yapabilirsiniz.')
   }
 
   async function finishLogin(userId) {
@@ -39,10 +48,7 @@ export default function LoginPage() {
     }
     const { data: m } = await supabase.from('memberships').select('id')
       .eq('company_id', company.id).eq('user_id', userId).eq('active', true)
-    if (!m || !m.length) {
-      setNeedActivation(true)
-      return
-    }
+    if (!m || !m.length) { await applyToCompany(); return }
     document.cookie = `active_company=${company.id}; path=/; max-age=2592000; samesite=lax`
     router.push('/'); router.refresh()
   }
@@ -59,32 +65,15 @@ export default function LoginPage() {
       else if (data.session) {
         const { data: p } = await supabase.from('profiles').select('is_super_admin').eq('id', data.user.id).single()
         if (p?.is_super_admin) { router.push('/admin'); router.refresh() }
-        else if (!superMode) { setNeedActivation(true) }
+        else if (!superMode) await applyToCompany()
         else {
           await supabase.auth.signOut()
           setMode('login')
           setInfo('Hesap oluşturuldu ancak süper yönetici yetkisi yok.')
         }
-      } else setInfo('Kayıt alındı. E-postanıza gelen doğrulama bağlantısına tıklayın.')
+      } else setInfo('Kayıt alındı. E-postanıza gelen doğrulama bağlantısına tıklayın, ardından giriş yaparak başvurunuzu tamamlayın.')
     }
     setBusy(false)
-  }
-
-  async function activate(e) {
-    e.preventDefault(); setError(''); setBusy(true)
-    const { data, error } = await supabase.rpc('activate_membership', { p_company: company.id, p_code: actCode })
-    if (error) setError(error.message)
-    else if (!data?.ok) setError(data?.error || 'Aktivasyon başarısız.')
-    else {
-      document.cookie = `active_company=${company.id}; path=/; max-age=2592000; samesite=lax`
-      router.push('/'); router.refresh()
-    }
-    setBusy(false)
-  }
-
-  async function cancelActivation() {
-    await supabase.auth.signOut()
-    setNeedActivation(false); setActCode(''); setError(''); setPassword('')
   }
 
   const Brand = (
@@ -93,30 +82,6 @@ export default function LoginPage() {
       <div><div className="brand-name">{BRAND.name}</div><div className="brand-sub">{BRAND.sub}</div></div>
     </div>
   )
-
-  if (needActivation && company) {
-    return (
-      <div className="auth-wrap">
-        {Brand}
-        <form className="auth-card" onSubmit={activate}>
-          <h1>Aktivasyon kodu</h1>
-          <p className="sub">{company.name} firmasına ilk kez giriyorsunuz. Firmanızın size verdiği aktivasyon kodunu girin. Bu kodu yalnızca bir kez girmeniz yeterli.</p>
-          <div className="field">
-            <label>Aktivasyon kodu</label>
-            <div className="input-icon">
-              <Icon name="key" size={18} />
-              <input value={actCode} onChange={e => setActCode(e.target.value)} placeholder="ACT-XXXXX-XXXXX-XXXXX-XXXXX" required autoFocus autoComplete="off" />
-            </div>
-          </div>
-          {error && <div className="error">{error}</div>}
-          <div className="auth-actions">
-            <button className="btn btn-primary" disabled={busy}>Aktive et</button>
-            <button type="button" className="btn btn-ghost" onClick={cancelActivation}>Vazgeç</button>
-          </div>
-        </form>
-      </div>
-    )
-  }
 
   if (!superMode && !company) {
     return (
@@ -149,7 +114,9 @@ export default function LoginPage() {
       {Brand}
       <form className="auth-card" onSubmit={submit}>
         <h1>{superMode ? 'Süper yönetici' : company.name}</h1>
-        <p className="sub">{mode === 'login' ? 'Hesabınızla giriş yapın.' : 'Yeni hesap oluşturun.'}</p>
+        <p className="sub">
+          {mode === 'login' ? 'Hesabınızla giriş yapın.' : superMode ? 'Yeni hesap oluşturun.' : 'Hesap oluşturup firmaya katılma başvurusu yapın. Başvurunuzu firma yöneticisi onaylar.'}
+        </p>
         {mode === 'register' && (
           <div className="field">
             <label>Ad soyad</label>
@@ -167,7 +134,7 @@ export default function LoginPage() {
         {error && <div className="error">{error}</div>}
         {info && <div className="notice">{info}</div>}
         <div className="auth-actions">
-          <button className="btn btn-primary" disabled={busy}>{mode === 'login' ? 'Giriş yap' : 'Hesap oluştur'}</button>
+          <button className="btn btn-primary" disabled={busy}>{mode === 'login' ? 'Giriş yap' : superMode ? 'Hesap oluştur' : 'Başvuru yap'}</button>
           <button type="button" className="btn btn-ghost" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setInfo('') }}>
             {mode === 'login' ? 'Hesap oluştur' : 'Girişe dön'}
           </button>

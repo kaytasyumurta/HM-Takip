@@ -1,11 +1,9 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { fmtDate, ROLE_TR } from '@/lib/format'
+import { fmtDate } from '@/lib/format'
 import Icon from '@/components/Icon'
 import Modal from '@/components/Modal'
-
-const KIND_TR = { activation: 'Aktivasyon kodu', extension: 'Uzatma anahtarı' }
 
 function keyState(k) {
   if (k.status === 'revoked') return ['expired', 'İptal edildi']
@@ -36,23 +34,17 @@ export default function KeyManager({ companyId }) {
 
   function openForm() {
     setError('')
-    setForm({ company: companyId || '', kind: 'extension', days: 30, role: 'purchasing', max_uses: 1, expires: '', note: '' })
+    setForm({ company: companyId || '', days: 30, expires: '', note: '' })
   }
 
   async function create(e) {
     e.preventDefault(); setError('')
-    const ext = form.kind === 'extension'
     const { data, error } = await supabase.rpc('create_license_key', {
-      p_company: form.company,
-      p_kind: form.kind,
-      p_days: ext ? Number(form.days) : null,
-      p_role: ext ? null : form.role,
-      p_max_uses: ext ? 1 : Number(form.max_uses),
-      p_expires: form.expires ? new Date(form.expires + 'T23:59:59').toISOString() : null,
-      p_note: form.note,
+      p_company: form.company, p_kind: 'extension', p_days: Number(form.days), p_role: null, p_max_uses: 1,
+      p_expires: form.expires ? new Date(form.expires + 'T23:59:59').toISOString() : null, p_note: form.note,
     })
     if (error) { setError(error.message); return }
-    setCreated({ key: data, kind: form.kind, company: cname(form.company), days: form.days })
+    setCreated({ key: data, company: cname(form.company), days: form.days })
     setCopied(false); setForm(null); load()
   }
 
@@ -70,7 +62,7 @@ export default function KeyManager({ companyId }) {
   return (
     <div>
       <div className="row">
-        <button className="btn btn-primary" onClick={openForm}><Icon name="plus" size={18} /> Yeni anahtar oluştur</button>
+        <button className="btn btn-primary" onClick={openForm}><Icon name="plus" size={18} /> Yeni uzatma anahtarı</button>
       </div>
       {error && !form && <div className="error">{error}</div>}
 
@@ -78,20 +70,19 @@ export default function KeyManager({ companyId }) {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr>{!companyId && <th>FİRMA</th>}<th>TÜR</th><th>ANAHTAR</th><th>İÇERİK</th><th>KULLANIM</th><th>DURUM</th><th>OLUŞTURULMA</th><th>NOT</th><th>İŞLEM</th></tr>
+              <tr>{!companyId && <th>FİRMA</th>}<th>ANAHTAR</th><th>SÜRE</th><th>DURUM</th><th>OLUŞTURULMA</th><th>KULLANIM TARİHİ</th><th>NOT</th><th>İŞLEM</th></tr>
             </thead>
             <tbody>
-              {keys.map(k => {
+              {keys.filter(k => k.kind === 'extension').map(k => {
                 const [cls, label] = keyState(k)
                 return (
                   <tr key={k.id}>
                     {!companyId && <td className="td-strong">{cname(k.company_id)}</td>}
-                    <td>{KIND_TR[k.kind]}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{k.kind === 'extension' ? 'EXT' : 'ACT'}-•••••-{k.key_hint}</td>
-                    <td>{k.kind === 'extension' ? `${k.duration_days} gün` : ROLE_TR[k.member_role]}</td>
-                    <td>{k.used_count} / {k.max_uses}</td>
+                    <td style={{ fontFamily: 'monospace' }}>EXT-•••••-{k.key_hint}</td>
+                    <td>{k.duration_days} gün</td>
                     <td><span className={`status ${cls}`}><i />{label}</span></td>
                     <td>{fmtDate(k.created_at)}</td>
+                    <td>{k.used_at ? fmtDate(k.used_at) : '-'}</td>
                     <td className="muted">{k.note || '-'}</td>
                     <td>
                       {k.status === 'active' && (
@@ -101,14 +92,14 @@ export default function KeyManager({ companyId }) {
                   </tr>
                 )
               })}
-              {!keys.length && <tr><td colSpan={companyId ? 8 : 9} className="empty">Henüz anahtar yok.</td></tr>}
+              {!keys.some(k => k.kind === 'extension') && <tr><td colSpan={companyId ? 7 : 8} className="empty">Henüz anahtar yok.</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
 
       {form && (
-        <Modal title="Yeni lisans anahtarı" onClose={() => setForm(null)}>
+        <Modal title="Yeni lisans uzatma anahtarı" onClose={() => setForm(null)}>
           <form onSubmit={create}>
             {error && <div className="error">{error}</div>}
             <div className="grid">
@@ -122,38 +113,16 @@ export default function KeyManager({ companyId }) {
                 </div>
               )}
               <div>
-                <label>Anahtar türü *</label>
-                <select value={form.kind} onChange={e => setForm({ ...form, kind: e.target.value })}>
-                  <option value="extension">Lisans uzatma anahtarı</option>
-                  <option value="activation">Kullanıcı aktivasyon kodu</option>
-                </select>
-              </div>
-              {form.kind === 'extension' ? (
-                <div>
-                  <label>Uzatma süresi (gün) *</label>
-                  <input type="number" min="1" max="3650" value={form.days} required onChange={e => setForm({ ...form, days: e.target.value })} />
-                  <div className="row" style={{ marginTop: 8, marginBottom: 0 }}>
-                    {[30, 90, 180, 365].map(d => (
-                      <button key={d} type="button" className="btn btn-ghost btn-sm" onClick={() => setForm({ ...form, days: d })}>{d} gün</button>
-                    ))}
-                  </div>
+                <label>Uzatma süresi (gün) *</label>
+                <input type="number" min="1" max="3650" value={form.days} required onChange={e => setForm({ ...form, days: e.target.value })} />
+                <div className="row" style={{ marginTop: 8, marginBottom: 0 }}>
+                  {[30, 90, 180, 365].map(d => (
+                    <button key={d} type="button" className="btn btn-ghost btn-sm" onClick={() => setForm({ ...form, days: d })}>{d} gün</button>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <label>Kodu kullanan kişiye verilecek rol *</label>
-                    <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
-                      {Object.entries(ROLE_TR).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Kaç kişi kullanabilir? *</label>
-                    <input type="number" min="1" value={form.max_uses} required onChange={e => setForm({ ...form, max_uses: e.target.value })} />
-                  </div>
-                </>
-              )}
+              </div>
               <div>
-                <label>Anahtarın son geçerlilik tarihi (isteğe bağlı)</label>
+                <label>Anahtarın son kullanma tarihi (isteğe bağlı)</label>
                 <input type="date" value={form.expires} onChange={e => setForm({ ...form, expires: e.target.value })} />
               </div>
               <div>
@@ -171,9 +140,7 @@ export default function KeyManager({ companyId }) {
 
       {created && (
         <Modal title="Anahtar oluşturuldu" onClose={() => setCreated(null)}>
-          <p className="muted" style={{ marginTop: 0 }}>
-            {created.company} firması için {created.kind === 'extension' ? `${created.days} günlük uzatma anahtarı` : 'aktivasyon kodu'}:
-          </p>
+          <p className="muted" style={{ marginTop: 0 }}>{created.company} firması için {created.days} günlük uzatma anahtarı:</p>
           <div className="key-box">{created.key}</div>
           <div className="banner" style={{ marginTop: 14 }}><Icon name="alert" /> Bu anahtar yalnızca şimdi gösterilir. Kapattıktan sonra tekrar görüntülenemez, kopyalayıp güvenli bir yerden iletin.</div>
           <div className="modal-foot">

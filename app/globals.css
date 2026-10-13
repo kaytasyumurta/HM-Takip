@@ -180,3 +180,19 @@ tbody tr:hover { background:var(--row-hover); }
 .tab:hover { color:var(--text); }
 .tab.on { color:#fff; border-color:transparent; background:linear-gradient(90deg,#1d4ed8,#2f5fd8); box-shadow:0 6px 18px rgba(29,78,216,.3); }
 .key-box { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:20px; letter-spacing:.04em; text-align:center; padding:18px; border-radius:12px; border:1px dashed var(--primary-line); background:var(--primary-soft); color:var(--primary-text); word-break:break-all; user-select:all; }
+
+/* ---------- Aşama 3 eklemeleri ---------- */
+.status.draft { color:var(--muted); background:var(--surface2); border-color:var(--border); }
+.status.done { color:var(--violet-text); background:var(--violet-soft); border-color:var(--violet-line); }
+.banner.info { border-color:var(--primary-line); background:var(--primary-soft); color:var(--primary-text); }
+.pbar-wrap { display:flex; align-items:center; gap:10px; }
+.pbar { flex:1; height:9px; border-radius:999px; background:var(--surface2); border:1px solid var(--border); overflow:hidden; }
+.pbar span { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#2563eb,#6d4bf5); }
+.pbar.full span { background:var(--ok); }
+.pbar.over span { background:var(--danger); }
+.pbar-txt { font-size:12.5px; font-weight:700; min-width:38px; text-align:right; }
+.kv { display:grid; grid-template-columns:170px 1fr; gap:10px 16px; font-size:14px; }
+.kv > span { color:var(--muted); }
+.skeleton { border-radius:16px; border:1px solid var(--border); background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%); background-size:200% 100%; animation:shimmer 1.3s linear infinite; }
+@keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+@media (max-width: 900px) { .kv { grid-template-columns:120px 1fr; } }

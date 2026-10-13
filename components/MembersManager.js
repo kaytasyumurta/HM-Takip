@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ROLE_TR } from '@/lib/format'
 import Icon from '@/components/Icon'
+import JoinRequests from '@/components/JoinRequests'
 
-export default function MembersManager({ companyId, selfId }) {
+export default function MembersManager({ companyId, selfId, allowAddByEmail = false }) {
   const supabase = useMemo(() => createClient(), [])
   const [rows, setRows] = useState([])
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState('weighbridge')
+  const [role, setRole] = useState('company_admin')
   const [q, setQ] = useState('')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
@@ -47,21 +48,24 @@ export default function MembersManager({ companyId, selfId }) {
 
   return (
     <div>
-      <form className="card" onSubmit={add}>
-        <div className="grid">
-          <div>
-            <label>Kullanıcının e-postası (önce hesap oluşturmuş olmalı)</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="ornek@firma.com" required />
+      <JoinRequests companyId={companyId} onChanged={load} />
+
+      {allowAddByEmail && (
+        <form className="card" onSubmit={add}>
+          <strong>İlk yöneticiyi e-posta ile ekle (süper yönetici)</strong>
+          <p className="muted" style={{ margin: '6px 0 14px' }}>Kişi önce hesap oluşturmuş olmalı. Normalde firma kodu ile başvuru yapar ve burada onaylanır.</p>
+          <div className="grid">
+            <div><label>E-posta</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+            <div>
+              <label>Rol</label>
+              <select value={role} onChange={e => setRole(e.target.value)}>
+                {Object.entries(ROLE_TR).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
           </div>
-          <div>
-            <label>Rol</label>
-            <select value={role} onChange={e => setRole(e.target.value)}>
-              {Object.entries(ROLE_TR).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
-        </div>
-        <div style={{ marginTop: 16 }}><button className="btn btn-primary"><Icon name="userplus" size={16} /> Firmaya ekle</button></div>
-      </form>
+          <div style={{ marginTop: 16 }}><button className="btn btn-primary"><Icon name="userplus" size={16} /> Firmaya ekle</button></div>
+        </form>
+      )}
 
       {error && <div className="error">{error}</div>}
       {info && <div className="notice">{info}</div>}
