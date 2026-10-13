@@ -14,7 +14,7 @@ export default function JoinRequests({ companyId, onChanged }) {
   async function load() {
     const { data, error } = await supabase
       .from('join_requests')
-      .select('id, requested_at, profile:profiles(full_name, email)')
+      .select('id, requested_at, profile:profiles!user_id(full_name, email)')
       .eq('company_id', companyId).eq('status', 'pending')
       .order('requested_at', { ascending: true })
     if (error) setError(error.message); else setRows(data || [])
