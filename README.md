@@ -21,3 +21,5 @@
 - Üstteki güneş/ay simgesiyle açık-koyu tema geçişi.
 - Ürün adı ve alt başlığı `lib/brand.js` dosyasından değiştirilebilir.
 - Yeni bağımlılık: lucide-react (Vercel otomatik kurar). Veritabanı değişmedi, SQL'i tekrar çalıştırmaya gerek yok.
+
+Commit changes
