@@ -25,7 +25,7 @@ export default async function AppLayout({ children }) {
       items.push({ href: '/suppliers', label: 'Tedarikçiler', icon: 'building' })
       items.push({ href: '/products', label: 'Ürünler', icon: 'layers' })
     }
-    items.push({ label: 'Kantar Kayıtları', icon: 'scale', disabled: true })
+    items.push({ href: '/weighbridge', label: 'Kantar Kayıtları', icon: 'scale' })
     items.push({ label: 'Raporlar', icon: 'chart', disabled: true })
     if (role === 'company_admin') {
       items.push({ href: '/members', label: 'Kullanıcılar', icon: 'users' })

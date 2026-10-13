@@ -101,6 +101,13 @@ export default function SupplyManager({ companyId, canManage }) {
     setQuick(null); load()
   }
 
+  async function reopen(o) {
+    setError('')
+    const { error } = await supabase.from('supply_orders').update({ status: 'active' }).eq('id', o.id)
+    if (error) { setError(error.message); return }
+    setDetail(null); load()
+  }
+
   const needle = q.toLocaleLowerCase('tr-TR')
   const shown = orders.filter(o =>
     (!needle || `${orderNo(o.order_no)} ${sname(o.supplier_id)} ${pname(o.product_id)}`.toLocaleLowerCase('tr-TR').includes(needle)) &&
@@ -157,7 +164,7 @@ export default function SupplyManager({ companyId, canManage }) {
               </thead>
               <tbody>
                 {shown.map(o => {
-                  const pg = progress(o, 0)
+                  const pg = progress(o)
                   return (
                     <tr key={o.id}>
                       <td className="td-strong">{orderNo(o.order_no)}</td>
@@ -166,7 +173,7 @@ export default function SupplyManager({ companyId, canManage }) {
                       <td>{fmtNum(o.planned_qty, 3)} ton</td>
                       <td>{fmtNum(pg.received, 3)} ton</td>
                       <td>{fmtNum(pg.remaining, 3)} ton</td>
-                      <td style={{ minWidth: 150 }}><ProgressBar pct={pg.pct} over={pg.over} /></td>
+                      <td style={{ minWidth: 150 }}><ProgressBar pct={pg.pct} over={pg.over} />{pg.over && <div style={{ fontSize: 12, color: 'var(--danger-text)', marginTop: 4 }}>+{fmtNum(pg.overBy, 3)} ton fazla teslimat</div>}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{priceText(o)}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{freightText(o)}</td>
                       <td>{fmtDate(o.start_date)}</td>
@@ -291,7 +298,7 @@ export default function SupplyManager({ companyId, canManage }) {
       {detail && (() => {
         const o = detail
         const c = calcCosts(o)
-        const pg = progress(o, 0)
+        const pg = progress(o)
         return (
           <Modal title={`Tedarik ${orderNo(o.order_no)} · ${pname(o.product_id)}`} onClose={() => setDetail(null)}>
             <div className="kv">
@@ -306,7 +313,7 @@ export default function SupplyManager({ companyId, canManage }) {
 
             <div style={{ margin: '18px 0 6px' }}><strong>İlerleme</strong></div>
             <ProgressBar pct={pg.pct} over={pg.over} />
-            <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>Gerçekleşen tonaj, kantar kayıtları onaylandıkça otomatik güncellenecek (sonraki aşama).</p>
+            <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>{o.truck_count || 0} araç · {fmtNum(pg.received, 3)} / {fmtNum(o.planned_qty, 3)} ton{pg.over ? ` · ${fmtNum(pg.overBy, 3)} ton fazla teslimat` : ''}. Gerçekleşen tonaj, onaylı kantar kayıtlarından otomatik hesaplanır.</p>
 
             <div style={{ margin: '18px 0 8px' }}><strong>Tahmini maliyet (planlanan tonaj üzerinden)</strong></div>
             <div className="kv">
@@ -338,6 +345,7 @@ export default function SupplyManager({ companyId, canManage }) {
               </div>
             )}
             <div className="modal-foot">
+              {canManage && o.status === 'completed' && <button className="btn btn-green" onClick={() => reopen(o)}><Icon name="rotate" size={16} /> Yeniden aç (ek teslimat)</button>}
               {canManage && <button className="btn btn-violet" onClick={() => { const x = detail; setDetail(null); editForm(x) }}><Icon name="pencil" size={16} /> Düzenle</button>}
               <button className="btn btn-primary" onClick={() => setDetail(null)}>Kapat</button>
             </div>

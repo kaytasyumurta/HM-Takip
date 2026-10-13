@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getContext } from '@/lib/session'
 import { createClient } from '@/lib/supabase/server'
 import { daysLeft, fmtDate, licenseState, LICENSE_TR } from '@/lib/format'
+import { fmtNum } from '@/lib/supply'
 import PageHeader from '@/components/PageHeader'
 import Icon from '@/components/Icon'
 
@@ -16,12 +17,14 @@ export default async function Home() {
   const manager = ['company_admin', 'purchasing'].includes(role)
 
   const head = { count: 'exact', head: true }
-  const [act, done, unk, pend] = await Promise.all([
+  const [act, done, unk, pend, wbr] = await Promise.all([
     manager ? supabase.from('supply_orders').select('*', head).eq('company_id', company.id).in('status', ['active', 'partial']) : { count: 0 },
     manager ? supabase.from('supply_orders').select('*', head).eq('company_id', company.id).eq('status', 'completed') : { count: 0 },
     manager ? supabase.from('supply_orders').select('*', head).eq('company_id', company.id).eq('freight_model', 'unknown').neq('status', 'cancelled') : { count: 0 },
     role === 'company_admin' ? supabase.from('join_requests').select('*', head).eq('company_id', company.id).eq('status', 'pending') : { count: 0 },
+    supabase.rpc('weighbridge_summary', { p_company: company.id }),
   ])
+  const wb = (wbr.data && wbr.data[0]) || { today_trucks: 0, today_kg: 0, month_kg: 0, pending: 0 }
 
   return (
     <div>
@@ -34,6 +37,13 @@ export default async function Home() {
           <Link href="/members" className="btn btn-primary btn-sm" style={{ marginLeft: 'auto' }}>Başvuruları incele</Link>
         </div>
       )}
+
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-icon"><Icon name="truck" size={24} /></div><div><div className="stat-label">Bugün kantara giren araç</div><div className="stat-value">{Number(wb.today_trucks)}</div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="scale" size={24} /></div><div><div className="stat-label">Bugün teslim alınan</div><div className="stat-value">{fmtNum(Number(wb.today_kg) / 1000, 3)} <span style={{ fontSize: 14 }}>ton</span></div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="chart" size={24} /></div><div><div className="stat-label">Bu ay teslim alınan</div><div className="stat-value">{fmtNum(Number(wb.month_kg) / 1000, 3)} <span style={{ fontSize: 14 }}>ton</span></div></div></div>
+        <div className="stat-card"><div className="stat-icon"><Icon name="clock" size={24} /></div><div><div className="stat-label">Onay bekleyen kantar kaydı</div><div className="stat-value">{Number(wb.pending)}</div></div></div>
+      </div>
 
       {manager && (
         <div className="stat-grid">

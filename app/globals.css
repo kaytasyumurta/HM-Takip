@@ -196,3 +196,13 @@ tbody tr:hover { background:var(--row-hover); }
 .skeleton { border-radius:16px; border:1px solid var(--border); background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%); background-size:200% 100%; animation:shimmer 1.3s linear infinite; }
 @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
 @media (max-width: 900px) { .kv { grid-template-columns:120px 1fr; } }
+
+/* ---------- Aşama 4: kantar fişi yazdırma ---------- */
+tfoot td { background:var(--surface2); border-top:1px solid var(--border); }
+@media print {
+  body * { visibility:hidden; }
+  .ticket-print, .ticket-print * { visibility:visible; }
+  .ticket-print { position:fixed; left:0; top:0; width:100%; padding:28px; background:#fff; color:#000; }
+  .ticket-print .muted, .ticket-print .kv > span { color:#444; }
+  .no-print { display:none !important; }
+}

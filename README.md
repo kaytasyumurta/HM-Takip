@@ -54,3 +54,15 @@ Değişiklikten sonra Redeploy yapın.
 - A firmasının kullanıcısı B firmasının tedarik/tedarikçi/ürün kayıtlarını göremez ve ekleyemez.
 - Nakliye modeli "dahil" iken ayrı nakliye bedeli kaydedilemez. "Belirsiz" iken kayıt yapılabilir, sonra "ayrı bedel"e çevrilince geçmişte görünür.
 - Lisansı biten firmada tedarik sayfaları veri döndürmez (kilit ekranı çıkar).
+
+## Aşama 4 (kantar modülü)
+1. Supabase > SQL Editor: `supabase/asama4.sql` dosyasının TAMAMINI yapıştırıp Run (Aşama 1-3 daha önce çalıştırılmış olmalı).
+2. Dosyaları GitHub'a yükle (main), Vercel otomatik dağıtır.
+
+### Test listesi
+- 1.000 tonluk tedarik aç. Kantarda 32,5 ton onaylı kayıt gir: tedarikte gerçekleşen 32,5, kalan 967,5, %3 görünmeli (araç sayısı 1).
+- Kaydı Beklemede yap: tonaja eklenmemeli. Onayla: eklenmeli. İptal et ya da sil: toplam geri düşmeli.
+- Toplamı geçecek kayıt gir: "fazla teslimat" uyarısı. Hedefe ulaşınca tedarik otomatik "Tamamlandı" olmalı; tamamlanmış tedariğe kayıt eklenmeye çalışılınca engellenmeli, "Yeniden aç" ile açılabilmeli.
+- Aynı plakaya sonra %5'ten farklı dara gir: "Dara!" uyarısı çıkmalı.
+- Kantar personeli hesabıyla: kayıt ekleyebilmeli, onaylanmış kaydı değiştirememeli/silememeli.
+- A firmasının kullanıcısı B firmasının kantar kayıtlarını göremez.
